@@ -69,6 +69,7 @@ def write(scanner, alphabet, directory='.'):
         f.close()
 
 alphabets = {
+    'latin': u'abcdefghijklmnopqrstuvwxyz',
     'greek': u'αβγδεζηθικλμνξοπρστυφχψω',
     'garuda': u'αβδεγηζθικλμνξοπρστυφχψω',
 }
@@ -117,7 +118,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     alphabet = alphabets[args.alphabet]
-    normalise = normalisations[args.alphabet]
+    normalise = normalisations.get(args.alphabet, {})
 
     with codecs.open(args.wordlist, mode='r', encoding=args.encoding) as f:
         scanner = scan(f, alphabet, normalise, allow_repetition=args.allow_repetition)
