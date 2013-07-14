@@ -5,8 +5,9 @@ import codecs
 import itertools
 import os.path
 import collections
+import argparse
 
-def scan(f, alphabet, normalise, forbid_repetition=True):
+def scan(f, alphabet, normalise, allow_repetition=False):
     alphabet_set = set(alphabet)
     alphabet_indices = list(enumerate(alphabet))
     alphabet_indices.reverse()
@@ -16,7 +17,7 @@ def scan(f, alphabet, normalise, forbid_repetition=True):
 
         if not chars <= alphabet_set:
             yield (None, word)
-        elif forbid_repetition and len(chars) != len(word):
+        elif not allow_repetition and len(chars) != len(word):
             yield (None, word)
         else:
             for i, a in alphabet_indices:
@@ -59,9 +60,22 @@ def write(scanner, alphabet, directory='.'):
     for f in fs:
         f.close()
 
-def main():
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='''Partitions a word list into lists of words which can be
+                       spelled using only progressively-larger leading subsets
+                       of the alphabet.''',
+        epilog='''By default, the size of each partition will be printed, but
+                  nothing will be saved.''')
+    parser.add_argument('-s', '--save', metavar='DIRECTORY',
+                        help='save partitioned word lists to DIRECTORY')
+    parser.add_argument('-r', '--allow-repetition', action='store_true',
+                        help='''allow a letter of the alphabet to be used more
+                                than once in a word''')
+    args = parser.parse_args()
+
     alphabet = u'αβγδεζηθικλμνξοπρστυφχψω'
-    garuda_songs = u'αβδεγηζθ'
+    garuda_songs = u'αβδεγηζθικλμνξοπρστυφχψω'
     normalise = {
         # tonos and dialytika
         u'ά': u'α',
@@ -83,8 +97,9 @@ def main():
     encoding = 'iso-8859-7'
 
     with codecs.open(wordlist, mode='r', encoding=encoding) as f:
-        scanner = scan(f, garuda_songs, normalise, forbid_repetition=True)
-        write(scanner, garuda_songs, directory='garuda-setlists')
+        scanner = scan(f, garuda_songs, normalise, allow_repetition=args.allow_repetition)
 
-if __name__ == '__main__':
-    main()
+        if args.save is not None:
+            write(scanner, garuda_songs, directory=args.save)
+        else:
+            count(scanner, garuda_songs)
