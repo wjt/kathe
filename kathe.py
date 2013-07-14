@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 # vim: set fileencoding=utf-8
+#
+# Copyright © 2013 Will Thompson.
+#
+# This program is provided under the MIT license. See LICENSE.md for more
+# information.
+
 from __future__ import print_function
 import codecs
 import itertools
