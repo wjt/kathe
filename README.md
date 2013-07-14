@@ -3,8 +3,8 @@
 
 This script partitions a word list into lists of words which can be spelled
 using only progressively-larger leading subsets of the alphabet. For example,
-consider a list of English words and the Roman alphabet
-(*abcdefghijklmnopqrstuvwxyz*). This script would find words that can be
+consider a list of English words and the Roman alphabet:
+*abcdefghijklmnopqrstuvwxyz*. This script would find words that can be
 spelled using only *a*, then only *ab*, then only *abc* (such as "cab"), then
 only *abcd* ("ad", "bad", "cad"), then only *abcde* ("ace", "aced", "bed",
 "bead"), and so on.
