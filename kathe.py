@@ -108,15 +108,18 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--allow-repetition', action='store_true',
                         help='''allow a letter of the alphabet to be used more
                                 than once in a word''')
+    parser.add_argument('-e', '--encoding', metavar='ENCODING',
+                        default='iso-8859-7',
+                        help='''Encoding of WORDLIST (default: iso-8859-7,
+                                regrettably)''')
+    parser.add_argument('wordlist', metavar='WORDLIST',
+                        help='''Path to a word list file to partition''')
     args = parser.parse_args()
 
     alphabet = alphabets[args.alphabet]
     normalise = normalisations[args.alphabet]
 
-    wordlist = 'el.wl.iso-8859-7'
-    encoding = 'iso-8859-7'
-
-    with codecs.open(wordlist, mode='r', encoding=encoding) as f:
+    with codecs.open(args.wordlist, mode='r', encoding=args.encoding) as f:
         scanner = scan(f, alphabet, normalise, allow_repetition=args.allow_repetition)
 
         if args.save is not None:
