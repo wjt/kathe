@@ -68,23 +68,13 @@ def write(scanner, alphabet, directory='.'):
     for f in fs:
         f.close()
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='''Partitions a word list into lists of words which can be
-                       spelled using only progressively-larger leading subsets
-                       of the alphabet.''',
-        epilog='''By default, the size of each partition will be printed, but
-                  nothing will be saved.''')
-    parser.add_argument('-s', '--save', metavar='DIRECTORY',
-                        help='save partitioned word lists to DIRECTORY')
-    parser.add_argument('-r', '--allow-repetition', action='store_true',
-                        help='''allow a letter of the alphabet to be used more
-                                than once in a word''')
-    args = parser.parse_args()
+alphabets = {
+    'greek': u'αβγδεζηθικλμνξοπρστυφχψω',
+    'garuda': u'αβδεγηζθικλμνξοπρστυφχψω',
+}
 
-    alphabet = u'αβγδεζηθικλμνξοπρστυφχψω'
-    garuda_songs = u'αβδεγηζθικλμνξοπρστυφχψω'
-    normalise = {
+normalisations = {
+    'greek': {
         # tonos and dialytika
         u'ά': u'α',
         u'έ': u'ε',
@@ -99,15 +89,37 @@ if __name__ == '__main__':
 
         # final sigma
         u'ς': u'σ',
-    }
+    },
+}
+normalisations['garuda'] = normalisations['greek']
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='''Partitions a word list into lists of words which can be
+                       spelled using only progressively-larger leading subsets
+                       of the alphabet.''',
+        epilog='''By default, the size of each partition will be printed, but
+                  nothing will be saved.''')
+    parser.add_argument('-a', '--alphabet', default='greek',
+                        choices=alphabets,
+                        help='''alphabet to use (default: greek, in order)''')
+    parser.add_argument('-s', '--save', metavar='DIRECTORY',
+                        help='save partitioned word lists to DIRECTORY')
+    parser.add_argument('-r', '--allow-repetition', action='store_true',
+                        help='''allow a letter of the alphabet to be used more
+                                than once in a word''')
+    args = parser.parse_args()
+
+    alphabet = alphabets[args.alphabet]
+    normalise = normalisations[args.alphabet]
 
     wordlist = 'el.wl.iso-8859-7'
     encoding = 'iso-8859-7'
 
     with codecs.open(wordlist, mode='r', encoding=encoding) as f:
-        scanner = scan(f, garuda_songs, normalise, allow_repetition=args.allow_repetition)
+        scanner = scan(f, alphabet, normalise, allow_repetition=args.allow_repetition)
 
         if args.save is not None:
-            write(scanner, garuda_songs, directory=args.save)
+            write(scanner, alphabet, directory=args.save)
         else:
-            count(scanner, garuda_songs)
+            count(scanner, alphabet)
