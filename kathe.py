@@ -4,21 +4,25 @@ from __future__ import print_function
 import codecs
 import itertools
 import os.path
+import collections
 
 def scan(f, alphabet, normalise, forbid_repetition=True):
-    # TODO: Garuda's songs weren't written in alphabetical order
-    assert alphabet == u''.join(sorted(alphabet))
+    alphabet_set = set(alphabet)
+    alphabet_indices = list(enumerate(alphabet))
+    alphabet_indices.reverse()
 
     for word in itertools.imap(unicode.strip, f):
-        chars = sorted(map(lambda c: normalise.get(c, c), word))
+        chars = set(map(lambda c: normalise.get(c, c), word))
 
-        if chars[0] < alphabet[0] or chars[-1] > alphabet[-1]:
+        if not chars <= alphabet_set:
             yield (None, word)
-        elif forbid_repetition and len(set(chars)) != len(chars):
+        elif forbid_repetition and len(chars) != len(word):
             yield (None, word)
         else:
-            i = alphabet.index(chars[-1])
-            yield (i, word)
+            for i, a in alphabet_indices:
+                if a in chars:
+                    yield (i, word)
+                    break
 
 def count(scanner, alphabet):
     n = len(alphabet)
@@ -79,8 +83,8 @@ def main():
     encoding = 'iso-8859-7'
 
     with codecs.open(wordlist, mode='r', encoding=encoding) as f:
-        scanner = scan(f, alphabet, normalise, forbid_repetition=False)
-        write(scanner, alphabet, directory='alphabet-with-duplicates')
+        scanner = scan(f, garuda_songs, normalise, forbid_repetition=True)
+        write(scanner, garuda_songs, directory='garuda-setlists')
 
 if __name__ == '__main__':
     main()
