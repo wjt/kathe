@@ -42,10 +42,12 @@ def count(scanner, alphabet):
         else:
             ks[i] += 1
 
-    for i, k in enumerate(ks):
-        print("%s: %d" % (alphabet[i], k))
+    print("Letter\tWords")
 
-    print("skipped: %d" % skipped)
+    for i, k in enumerate(ks):
+        print("%s\t%d" % (alphabet[i], k))
+
+    print("skipped\t%d" % skipped)
 
 def write(scanner, alphabet, directory='.'):
     fs = []
