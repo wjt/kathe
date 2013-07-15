@@ -9,9 +9,26 @@
 from __future__ import print_function
 import codecs
 import itertools
-import os.path
+import os
 import collections
 import argparse
+
+song_lengths = {
+    u'α': 249,
+    u'β': 139,
+    u'γ': 360,
+    u'δ': 360,
+    u'ε': 42,
+    u'ζ': 330,
+    u'η': 300,
+    u'θ': 210,
+}
+
+def set_length(word):
+    try:
+        return sum(map(lambda x: song_lengths[x], word))
+    except KeyError:
+        return None
 
 def scan(f, alphabet, normalise, allow_repetition=False):
     alphabet_set = set(alphabet)
@@ -19,16 +36,17 @@ def scan(f, alphabet, normalise, allow_repetition=False):
     alphabet_indices.reverse()
 
     for word in itertools.imap(unicode.strip, f):
-        chars = set(map(lambda c: normalise.get(c, c), word))
+        normalised = map(lambda c: normalise.get(c, c), word)
+        chars = set(normalised)
 
         if not chars <= alphabet_set:
-            yield (None, word)
+            yield (None, word, None)
         elif not allow_repetition and len(chars) != len(word):
-            yield (None, word)
+            yield (None, word, None)
         else:
             for i, a in alphabet_indices:
                 if a in chars:
-                    yield (i, word)
+                    yield (i, word, set_length(normalised))
                     break
 
 def count(scanner, alphabet):
@@ -36,7 +54,7 @@ def count(scanner, alphabet):
     ks = [0] * n
     skipped = 0
 
-    for i, word in scanner:
+    for i, word, _ in scanner:
         if i is None:
             skipped += 1
         else:
@@ -49,19 +67,26 @@ def count(scanner, alphabet):
 
     print("skipped\t%d" % skipped)
 
-def write(scanner, alphabet, directory='.'):
-    fs = []
+def write(scanner, alphabet, directory='.', with_lengths=False):
+    if not os.path.exists(directory):
+        os.makedirs(os.path.normpath(directory))
+
     skipped_filename = os.path.join(directory, 'skipped.txt')
     skipped = codecs.open(skipped_filename, 'w', 'utf-8')
 
+    fs = []
     for i, letter in enumerate(alphabet):
         filename = os.path.join(directory, '%02d-%s.txt' % (i, letter))
         fs.append(codecs.open(filename, 'w', 'utf-8'))
 
-    for i, word in scanner:
+    for i, word, l in scanner:
         if i is None:
             print(word, file=skipped)
         else:
+            if with_lengths and l is not None:
+                (m, s) = divmod(l, 60)
+                word = u'%s (%d:%02d)' % (word, m, s)
+
             print(word, file=fs[i])
 
     skipped.close()
@@ -106,6 +131,10 @@ if __name__ == '__main__':
                         help='''alphabet to use (default: greek, in order)''')
     parser.add_argument('-s', '--save', metavar='DIRECTORY',
                         help='save partitioned word lists to DIRECTORY')
+    parser.add_argument('-l', '--lengths', action='store_true',
+                        help='''Add set lengths to saved word lists
+                                (meaningless without --save; probably
+                                meaningless if you are not @kathegaruda)''')
     parser.add_argument('-r', '--allow-repetition', action='store_true',
                         help='''allow a letter of the alphabet to be used more
                                 than once in a word''')
@@ -124,6 +153,6 @@ if __name__ == '__main__':
         scanner = scan(f, alphabet, normalise, allow_repetition=args.allow_repetition)
 
         if args.save is not None:
-            write(scanner, alphabet, directory=args.save)
+            write(scanner, alphabet, directory=args.save, with_lengths=args.lengths)
         else:
             count(scanner, alphabet)
